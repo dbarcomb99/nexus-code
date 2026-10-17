@@ -122,6 +122,7 @@
 
         .quest-node.completed {
             border-color: var(--emerald);
+            background: rgba(16, 185, 129, 0.05);
         }
 
         .quest-title {
@@ -146,6 +147,7 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             border-bottom: 1px solid var(--border-neon);
+            overflow: hidden;
         }
 
         .mission-panel {
@@ -156,14 +158,33 @@
 
         .mission-panel h2 {
             color: var(--cyan);
-            margin-bottom: 1rem;
-            font-size: 1.4rem;
+            margin-bottom: 0.75rem;
+            font-size: 1.3rem;
         }
 
-        .mission-panel p {
+        .section-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--magenta);
+            margin-top: 1.25rem;
+            margin-bottom: 0.35rem;
+            display: block;
+        }
+
+        .mission-panel p, .mission-panel li {
             color: var(--text-muted);
             line-height: 1.6;
-            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .mission-panel code {
+            background: rgba(30, 41, 59, 0.7);
+            color: var(--cyan);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
         }
 
         .code-container {
@@ -264,37 +285,36 @@
         <div class="logo">⚡ NEXUS_CODE v1.0</div>
         <div class="stats-bar">
             <div class="stat-item">LVL: <span class="stat-val" id="level-display">01</span></div>
-            <div class="stat-item">XP: <span class="stat-val" id="xp-display">0</span>/100</div>
+            <div class="stat-item">XP: <span class="stat-val" id="xp-display">0</span>/225</div>
             <div class="stat-item">STREAK: <span class="stat-val" id="streak-display">🔥 1</span></div>
         </div>
     </header>
 
     <div class="main-container">
-        <aside>
+        <aside id="sidebar-tree">
             <h3>Neural Skill Tree</h3>
-            <div class="quest-node active" id="node-1">
-                <div class="quest-title">01. Output Stream</div>
-                <div class="quest-status">[ACTIVE] +50 XP</div>
-            </div>
-            <div class="quest-node" id="node-2">
-                <div class="quest-title">02. Variable Injection</div>
-                <div class="quest-status">[LOCKED] +75 XP</div>
-            </div>
+            <!-- Dynamically populated -->
         </aside>
 
         <div class="workspace">
             <div class="editor-area">
                 <div class="mission-panel">
-                    <h2 id="quest-heading">Quest 1: Initialize Protocol</h2>
-                    <p id="quest-desc">Establish connection with the mainframe by printing the exact transmission string: <code>ACCESS_GRANTED</code></p>
+                    <h2 id="quest-heading">Loading...</h2>
+                    
+                    <span class="section-label">📖 Lesson Briefing</span>
+                    <p id="quest-lesson">Loading briefing...</p>
+
+                    <span class="section-label">🎯 Mission Objective</span>
+                    <p id="quest-desc">Loading objective...</p>
+
                     <div id="ai-hint-box" style="margin-top: 1rem; color: var(--magenta); font-size: 0.85rem;"></div>
                 </div>
                 <div class="code-container">
                     <div class="code-header">
-                        <span>terminal_main.py</span>
+                        <span id="file-name">terminal_main.py</span>
                         <span>PYTHON 3.11</span>
                     </div>
-                    <textarea id="code-input">print("ACCESS_GRANTED")</textarea>
+                    <textarea id="code-input" placeholder="# Write your solution here..."></textarea>
                 </div>
             </div>
 
@@ -312,138 +332,185 @@
     </div>
 
     <script>
-    // Web Audio Synthesizer for Retro SFX
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    function playSound(type) {
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        
-        if (type === 'run') {
-            osc.frequency.setValueAtTime(440, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.1);
-            gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.1);
-            osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-        } else if (type === 'success') {
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
-            osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.08);
-            osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.16);
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
-            osc.start(); osc.stop(audioCtx.currentTime + 0.3);
-        }
-    }
-
-    // Curriculum Quests Database
-    const quests = [
-        {
-            id: 1,
-            title: "01. Output Stream",
-            desc: "Establish connection with the mainframe by printing the exact transmission string: <code>ACCESS_GRANTED</code>",
-            starterCode: 'print("ACCESS_GRANTED")',
-            expected: "ACCESS_GRANTED",
-            xp: 50
-        },
-        {
-            id: 2,
-            title: "02. Variable Injection",
-            desc: "Store your codename in a variable called <code>agent</code> and print it out.",
-            starterCode: '# Define agent variable here\nagent = "Ghost_Runner"\nprint(agent)',
-            expected: "Ghost_Runner",
-            xp: 75
-        },
-        {
-            id: 3,
-            title: "03. Neural Loop",
-            desc: "Write a <code>for</code> loop that counts from 1 to 3, printing each number.",
-            starterCode: 'for i in range(1, 4):\n    print(i)',
-            expected: "1\n2\n3",
-            xp: 100
-        }
-    ];
-
-    let currentQuestIndex = 0;
-    let pyodideReady = false;
-    let pyodide;
-    let currentXP = 0;
-
-    // Load initial quest view
-    function loadQuest(index) {
-        const q = quests[index];
-        document.getElementById("quest-heading").innerText = `Quest ${q.id}: ${q.title.split('. ')[1]}`;
-        document.getElementById("quest-desc").innerHTML = q.desc;
-        document.getElementById("code-input").value = q.starterCode;
-        document.getElementById("ai-hint-box").innerText = "";
-    }
-    loadQuest(0);
-
-    async function initPyodide() {
-        const out = document.getElementById("output");
-        out.innerText = "Loading Pyodide WebAssembly runtime...";
-        pyodide = await loadPyodide();
-        pyodideReady = true;
-        out.innerText = "System online. Ready for code execution.";
-    }
-    initPyodide();
-
-    async function runPythonCode() {
-        if (!pyodideReady) {
-            alert("Runtime still loading...");
-            return;
-        }
-        playSound('run');
-        const code = document.getElementById("code-input").value;
-        const outputPre = document.getElementById("output");
-        outputPre.innerText = "Executing in sandbox...";
-
-        try {
-            pyodide.runPython(`
-                import sys
-                import io
-                sys.stdout = io.StringIO()
-            `);
-
-            pyodide.runPython(code);
-            let stdout = pyodide.runPython("sys.stdout.getvalue()");
-            outputPre.innerText = stdout;
-
-            // Validate against current quest expected output
-            let targetOutput = quests[currentQuestIndex].expected.trim();
-            if (stdout.trim() === targetOutput) {
-                playSound('success');
-                const earnedXP = quests[currentQuestIndex].xp;
-                outputPre.innerText += `\n\n[✔] TEST PASSED: +${earnedXP} XP`;
-                currentXP += earnedXP;
-                document.getElementById("xp-display").innerText = currentXP;
-                
-                // Move to next quest
-                currentQuestIndex++;
-                if (currentQuestIndex < quests.length) {
-                    setTimeout(() => loadQuest(currentQuestIndex), 2000);
-                } else {
-                    outputPre.innerText += "\n\n🎉 ALL PROTOCOLS COMPLETED. SYSTEM MASTERED.";
-                }
-            } else {
-                outputPre.innerText += "\n\n[✖] TEST FAILED: Output did not match expected transmission string.";
+        // Web Audio Synthesizer for Retro SFX
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            if (type === 'run') {
+                osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.1);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+            } else if (type === 'success') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.08);
+                osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.16);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.3);
             }
-        } catch (err) {
-            outputPre.innerText = "ERROR:\n" + err;
         }
-    }
 
-    function requestAiHint() {
-        playSound('run');
-        const hints = [
-            "Make sure your string matches the expected output character for character.",
-            "Assign the value to the variable first, then call print() on that variable.",
-            "Remember that range(1, 4) in Python stops right before 4."
+        // Curriculum Database (Boot.dev Style: Lesson + Challenge + Blank Starter Code)
+        const quests = [
+            {
+                id: 1,
+                title: "01. Output Stream",
+                lesson: "In Python, the <code>print()</code> function is your primary tool for sending text to the output terminal. Anything placed inside the parentheses as a string (wrapped in quotes) will be displayed on the screen.",
+                desc: "Establish connection with the mainframe by writing a <code>print()</code> command that outputs the exact string: <code>ACCESS_GRANTED</code>",
+                starterCode: '# Type your print command below\n',
+                expected: "ACCESS_GRANTED",
+                xp: 50
+            },
+            {
+                id: 2,
+                title: "02. Variable Injection",
+                lesson: "Variables act as containers to store data in memory. You assign values to variables using the <code>=</code> operator. Once stored, you can reference the variable name instead of repeating raw data.",
+                desc: "Store your agent codename in a variable named <code>agent</code> with the value <code>"Ghost_Runner"</code>, then print the variable.",
+                starterCode: '# Assign and print your agent variable\n',
+                expected: "Ghost_Runner",
+                xp: 75
+            },
+            {
+                id: 3,
+                title: "03. Neural Loop",
+                lesson: "Loops automate repetitive tasks. A <code>for</code> loop iterates over a sequence of numbers using <code>range(start, stop)</code>, where the stop value is exclusive.",
+                desc: "Write a <code>for</code> loop that uses <code>range(1, 4)</code> to print numbers 1, 2, and 3 sequentially.",
+                starterCode: '# Write your loop below\n',
+                expected: "1\n2\n3",
+                xp: 100
+            }
         ];
-        document.getElementById("ai-hint-box").innerText = `AI Assistant: ${hints[currentQuestIndex]}`;
-    }
+
+        let currentQuestIndex = 0;
+        let pyodideReady = false;
+        let pyodide;
+        let currentXP = 0;
+
+        // Render Sidebar Skill Tree
+        function renderSidebar() {
+            const tree = document.getElementById("sidebar-tree");
+            tree.innerHTML = '<h3>Neural Skill Tree</h3>';
+            
+            quests.forEach((q, idx) => {
+                let statusClass = "";
+                let statusText = "[LOCKED]";
+                
+                if (idx < currentQuestIndex) {
+                    statusClass = "completed";
+                    statusText = "[COMPLETED] ✔";
+                } else if (idx === currentQuestIndex) {
+                    statusClass = "active";
+                    statusText = `[ACTIVE] +${q.xp} XP`;
+                }
+
+                tree.innerHTML += `
+                    <div class="quest-node ${statusClass}" onclick="switchQuest(${idx})">
+                        <div class="quest-title">${q.title}</div>
+                        <div class="quest-status">${statusText}</div>
+                    </div>
+                `;
+            });
+        }
+
+        // Load a quest onto the screen
+        function loadQuest(index) {
+            if (index >= quests.length) return;
+            currentQuestIndex = index;
+            const q = quests[index];
+            
+            document.getElementById("quest-heading").innerText = `Quest ${q.id}: ${q.title.split('. ')[1]}`;
+            document.getElementById("quest-lesson").innerHTML = q.lesson;
+            document.getElementById("quest-desc").innerHTML = q.desc;
+            document.getElementById("code-input").value = q.starterCode;
+            document.getElementById("ai-hint-box").innerText = "";
+            document.getElementById("output").innerText = "System ready. Awaiting code execution.";
+            
+            renderSidebar();
+        }
+
+        function switchQuest(index) {
+            if (index <= currentQuestIndex) {
+                loadQuest(index);
+            } else {
+                alert("Complete previous security protocols to unlock this node.");
+            }
+        }
+
+        // Initialize Pyodide
+        async function initPyodide() {
+            const out = document.getElementById("output");
+            out.innerText = "Loading Pyodide WebAssembly runtime...";
+            pyodide = await loadPyodide();
+            pyodideReady = true;
+            out.innerText = "System online. Ready for code execution.";
+            loadQuest(0);
+        }
+        initPyodide();
+
+        async function runPythonCode() {
+            if (!pyodideReady) {
+                alert("Runtime still loading...");
+                return;
+            }
+            playSound('run');
+            const code = document.getElementById("code-input").value;
+            const outputPre = document.getElementById("output");
+            outputPre.innerText = "Executing in sandbox...";
+
+            try {
+                pyodide.runPython(`
+                    import sys
+                    import io
+                    sys.stdout = io.StringIO()
+                `);
+
+                pyodide.runPython(code);
+                let stdout = pyodide.runPython("sys.stdout.getvalue()");
+                outputPre.innerText = stdout;
+
+                let targetOutput = quests[currentQuestIndex].expected.trim();
+                if (stdout.trim() === targetOutput) {
+                    playSound('success');
+                    const earnedXP = quests[currentQuestIndex].xp;
+                    outputPre.innerText += `\n\n[✔] TEST PASSED: +${earnedXP} XP`;
+                    currentXP += earnedXP;
+                    document.getElementById("xp-display").innerText = currentXP;
+                    
+                    currentQuestIndex++;
+                    renderSidebar();
+
+                    if (currentQuestIndex < quests.length) {
+                        setTimeout(() => {
+                            loadQuest(currentQuestIndex);
+                        }, 2000);
+                    } else {
+                        outputPre.innerText += "\n\n🎉 ALL PROTOCOLS COMPLETED. SYSTEM MASTERED.";
+                    }
+                } else {
+                    outputPre.innerText += "\n\n[✖] TEST FAILED: Output did not match expected transmission string.";
+                }
+            } catch (err) {
+                outputPre.innerText = "ERROR:\n" + err;
+            }
+        }
+
+        function requestAiHint() {
+            playSound('run');
+            const hints = [
+                "Hint: Use the print() function with the exact text string inside double quotes.",
+                "Hint: Assign the string to variable 'agent' on line 1, then type print(agent) on line 2.",
+                "Hint: Your for loop syntax should look like: for i in range(1, 4): print(i)"
+            ];
+            document.getElementById("ai-hint-box").innerText = `AI Assistant: ${hints[currentQuestIndex]}`;
+        }
     </script>
 </body>
 </html>
