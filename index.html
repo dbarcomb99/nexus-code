@@ -358,7 +358,7 @@
             }
         }
 
-        // Curriculum Database (Boot.dev Style: Lesson + Challenge + Blank Starter Code)
+        // Curriculum Database
         const quests = [
             {
                 id: 1,
@@ -420,7 +420,7 @@
             });
         }
 
-        // Load a quest onto the screen
+        // Load a quest onto the screen immediately
         function loadQuest(index) {
             if (index >= quests.length) return;
             currentQuestIndex = index;
@@ -431,7 +431,6 @@
             document.getElementById("quest-desc").innerHTML = q.desc;
             document.getElementById("code-input").value = q.starterCode;
             document.getElementById("ai-hint-box").innerText = "";
-            document.getElementById("output").innerText = "System ready. Awaiting code execution.";
             
             renderSidebar();
         }
@@ -444,20 +443,26 @@
             }
         }
 
-        // Initialize Pyodide
+        // Load Quest 0 instantly so the UI never hangs
+        loadQuest(0);
+
+        // Initialize Pyodide in the background
         async function initPyodide() {
             const out = document.getElementById("output");
-            out.innerText = "Loading Pyodide WebAssembly runtime...";
-            pyodide = await loadPyodide();
-            pyodideReady = true;
-            out.innerText = "System online. Ready for code execution.";
-            loadQuest(0);
+            out.innerText = "Loading Pyodide WebAssembly runtime in background...";
+            try {
+                pyodide = await loadPyodide();
+                pyodideReady = true;
+                out.innerText = "System online. Ready for code execution.";
+            } catch (err) {
+                out.innerText = "ERROR loading Python engine: " + err;
+            }
         }
         initPyodide();
 
         async function runPythonCode() {
             if (!pyodideReady) {
-                alert("Runtime still loading...");
+                alert("Python runtime is still loading in the background, please wait a couple seconds...");
                 return;
             }
             playSound('run');
