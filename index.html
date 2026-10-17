@@ -277,6 +277,31 @@
             flex: 1;
             overflow-y: auto;
         }
+
+        /* ==========================================
+           MOBILE RESPONSIVENESS (< 900px screens)
+           ========================================== */
+        @media (max-width: 900px) {
+            .main-container {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+            aside {
+                display: none; /* Hide sidebar on mobile to prioritize workspace */
+            }
+            .editor-area {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+            .mission-panel {
+                max-height: 250px;
+                border-right: none;
+                border-bottom: 1px solid var(--border-neon);
+            }
+            textarea {
+                min-height: 180px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -420,7 +445,7 @@
             });
         }
 
-        // Load a quest onto the screen immediately
+        // Load a quest instantly
         function loadQuest(index) {
             if (index >= quests.length) return;
             currentQuestIndex = index;
@@ -443,10 +468,10 @@
             }
         }
 
-        // Load Quest 0 instantly so the UI never hangs
+        // Instantly load Quest 0 so UI never freezes
         loadQuest(0);
 
-        // Initialize Pyodide in the background
+        // Initialize Pyodide in background
         async function initPyodide() {
             const out = document.getElementById("output");
             out.innerText = "Loading Pyodide WebAssembly runtime in background...";
