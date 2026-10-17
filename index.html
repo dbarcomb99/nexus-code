@@ -312,88 +312,138 @@
     </div>
 
     <script>
-        // Web Audio Synthesizer for Retro SFX
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        function playSound(type) {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            
-            if (type === 'run') {
-                osc.frequency.setValueAtTime(440, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.1);
-                gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.1);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-            } else if (type === 'success') {
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
-                osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.08);
-                osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.16);
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.3);
-            }
+    // Web Audio Synthesizer for Retro SFX
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playSound(type) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        
+        if (type === 'run') {
+            osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.1);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+        } else if (type === 'success') {
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+            osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.08);
+            osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.16);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.3);
         }
+    }
 
-        // Pyodide Initialization
-        let pyodideReady = false;
-        let pyodide;
-        let currentXP = 0;
-
-        async function initPyodide() {
-            const out = document.getElementById("output");
-            out.innerText = "Loading Pyodide WebAssembly runtime...";
-            pyodide = await loadPyodide();
-            pyodideReady = true;
-            out.innerText = "System online. Ready for code execution.";
+    // Curriculum Quests Database
+    const quests = [
+        {
+            id: 1,
+            title: "01. Output Stream",
+            desc: "Establish connection with the mainframe by printing the exact transmission string: <code>ACCESS_GRANTED</code>",
+            starterCode: 'print("ACCESS_GRANTED")',
+            expected: "ACCESS_GRANTED",
+            xp: 50
+        },
+        {
+            id: 2,
+            title: "02. Variable Injection",
+            desc: "Store your codename in a variable called <code>agent</code> and print it out.",
+            starterCode: '# Define agent variable here\nagent = "Ghost_Runner"\nprint(agent)',
+            expected: "Ghost_Runner",
+            xp: 75
+        },
+        {
+            id: 3,
+            title: "03. Neural Loop",
+            desc: "Write a <code>for</code> loop that counts from 1 to 3, printing each number.",
+            starterCode: 'for i in range(1, 4):\n    print(i)',
+            expected: "1\n2\n3",
+            xp: 100
         }
-        initPyodide();
+    ];
 
-        async function runPythonCode() {
-            if (!pyodideReady) {
-                alert("Runtime still loading...");
-                return;
-            }
-            playSound('run');
-            const code = document.getElementById("code-input").value;
-            const outputPre = document.getElementById("output");
-            outputPre.innerText = "Executing in sandbox...";
+    let currentQuestIndex = 0;
+    let pyodideReady = false;
+    let pyodide;
+    let currentXP = 0;
 
-            try {
-                pyodide.runPython(`
-                    import sys
-                    import io
-                    sys.stdout = io.StringIO()
-                `);
+    // Load initial quest view
+    function loadQuest(index) {
+        const q = quests[index];
+        document.getElementById("quest-heading").innerText = `Quest ${q.id}: ${q.title.split('. ')[1]}`;
+        document.getElementById("quest-desc").innerHTML = q.desc;
+        document.getElementById("code-input").value = q.starterCode;
+        document.getElementById("ai-hint-box").innerText = "";
+    }
+    loadQuest(0);
 
-                pyodide.runPython(code);
-                let stdout = pyodide.runPython("sys.stdout.getvalue()");
-                outputPre.innerText = stdout;
+    async function initPyodide() {
+        const out = document.getElementById("output");
+        out.innerText = "Loading Pyodide WebAssembly runtime...";
+        pyodide = await loadPyodide();
+        pyodideReady = true;
+        out.innerText = "System online. Ready for code execution.";
+    }
+    initPyodide();
 
-                // Validation check for Quest 1
-                if (stdout.trim() === "ACCESS_GRANTED") {
-                    playSound('success');
-                    outputPre.innerText += "\n\n[✔] TEST PASSED: +50 XP";
-                    currentXP += 50;
-                    document.getElementById("xp-display").innerText = currentXP;
-                    document.getElementById("node-1").classList.remove("active");
-                    document.getElementById("node-1").classList.add("completed");
-                    document.getElementById("node-2").classList.add("active");
+    async function runPythonCode() {
+        if (!pyodideReady) {
+            alert("Runtime still loading...");
+            return;
+        }
+        playSound('run');
+        const code = document.getElementById("code-input").value;
+        const outputPre = document.getElementById("output");
+        outputPre.innerText = "Executing in sandbox...";
+
+        try {
+            pyodide.runPython(`
+                import sys
+                import io
+                sys.stdout = io.StringIO()
+            `);
+
+            pyodide.runPython(code);
+            let stdout = pyodide.runPython("sys.stdout.getvalue()");
+            outputPre.innerText = stdout;
+
+            // Validate against current quest expected output
+            let targetOutput = quests[currentQuestIndex].expected.trim();
+            if (stdout.trim() === targetOutput) {
+                playSound('success');
+                const earnedXP = quests[currentQuestIndex].xp;
+                outputPre.innerText += `\n\n[✔] TEST PASSED: +${earnedXP} XP`;
+                currentXP += earnedXP;
+                document.getElementById("xp-display").innerText = currentXP;
+                
+                // Move to next quest
+                currentQuestIndex++;
+                if (currentQuestIndex < quests.length) {
+                    setTimeout(() => loadQuest(currentQuestIndex), 2000);
                 } else {
-                    outputPre.innerText += "\n\n[✖] TEST FAILED: Output did not match expected transmission string.";
+                    outputPre.innerText += "\n\n🎉 ALL PROTOCOLS COMPLETED. SYSTEM MASTERED.";
                 }
-            } catch (err) {
-                outputPre.innerText = "ERROR:\n" + err;
+            } else {
+                outputPre.innerText += "\n\n[✖] TEST FAILED: Output did not match expected transmission string.";
             }
+        } catch (err) {
+            outputPre.innerText = "ERROR:\n" + err;
         }
+    }
 
-        function requestAiHint() {
-            playSound('run');
-            document.getElementById("ai-hint-box").innerText = "AI Assistant: Make sure you are using the print() function with exact string matching inside quotes.";
-        }
+    function requestAiHint() {
+        playSound('run');
+        const hints = [
+            "Make sure your string matches the expected output character for character.",
+            "Assign the value to the variable first, then call print() on that variable.",
+            "Remember that range(1, 4) in Python stops right before 4."
+        ];
+        document.getElementById("ai-hint-box").innerText = `AI Assistant: ${hints[currentQuestIndex]}`;
+    }
     </script>
 </body>
 </html>
