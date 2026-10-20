@@ -388,20 +388,19 @@
     let currentXP = 0;
 
     // Dynamically fetch Level 1 JSON curriculum
-    async function loadCurriculum() {
-        try {
-            // Using './lessons/l1.json' ensures it looks inside the correct relative subfolder on GitHub Pages
-            const response = await fetch('./lessons/l1.json');
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            quests = await response.json();
-            loadQuest(0);
-        } catch (err) {
-            console.error("Fetch failed:", err);
-            document.getElementById("quest-heading").innerText = "LOAD ERROR";
-            document.getElementById("quest-lesson").innerHTML = "Could not load <code>lessons/l1.json</code>. Check your file path or GitHub folder structure.";
-        }
+   async function loadCurriculum() {
+    try {
+        // Explicitly include your repository name for GitHub Pages routing
+        const response = await fetch('/nexus-code/lessons/l1.json');
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        quests = await response.json();
+        loadQuest(0);
+    } catch (err) {
+        console.error("Fetch failed:", err);
+        document.getElementById("quest-heading").innerText = "LOAD ERROR";
+        document.getElementById("quest-lesson").innerHTML = "Could not load <code>lessons/l1.json</code>. Check your file path or GitHub folder structure.";
     }
-
+}
     function renderSidebar() {
         const tree = document.getElementById("sidebar-tree");
         if (!tree) return;
