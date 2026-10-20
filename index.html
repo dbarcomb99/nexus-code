@@ -379,35 +379,19 @@
             }
         }
 
-        const quests = [
-            {
-                id: 1,
-                title: "01. Output Stream",
-                lesson: "In Python, the <code>print()</code> function sends text to the output terminal. Anything inside quotes inside the parentheses displays on screen.",
-                desc: "Establish connection by writing a <code>print()</code> command that outputs: <code>ACCESS_GRANTED</code>",
-                starterCode: '# Type your print command below\n',
-                expected: "ACCESS_GRANTED",
-                xp: 50
-            },
-            {
-                id: 2,
-                title: "02. Variable Injection",
-                lesson: "Variables store data in memory using the <code>=</code> operator. You can reference the variable name later.",
-                desc: "Store your codename in a variable named <code>agent</code> with value <code>\"Ghost_Runner\"</code>, then print it.",
-                starterCode: '# Assign and print agent variable\n',
-                expected: "Ghost_Runner",
-                xp: 75
-            },
-            {
-                id: 3,
-                title: "03. Neural Loop",
-                lesson: "Loops automate tasks. A <code>for</code> loop iterates over numbers using <code>range(start, stop)</code>.",
-                desc: "Write a <code>for</code> loop using <code>range(1, 4)</code> to print 1, 2, and 3.",
-                starterCode: '# Write your loop below\n',
-                expected: "1\n2\n3",
-                xp: 100
-            }
-        ];
+        let quests = [];
+
+async function loadCurriculum() {
+    try {
+        const response = await fetch('lessons/l1.json');
+        if (!response.ok) throw new Error("Failed to load level data.");
+        quests = await response.json();
+        loadQuest(0);
+    } catch (err) {
+        console.error(err);
+        document.getElementById("quest-heading").innerText = "Error loading level";
+    }
+}
 
         let currentQuestIndex = 0;
         let pyodideReady = false;
