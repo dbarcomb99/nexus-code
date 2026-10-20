@@ -354,154 +354,159 @@
     </div>
 
     <script>
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        function playSound(type) {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            
-            if (type === 'run') {
-                osc.frequency.setValueAtTime(440, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.1);
-                gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.1);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-            } else if (type === 'success') {
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
-                osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.08);
-                osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.16);
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.3);
-            }
+    // Audio Context Setup for SFX
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playSound(type) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        if (type === 'run') {
+            osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.1);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+        } else if (type === 'success') {
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+            osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.08);
+            osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.16);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.3);
         }
-
-        let quests = [];
-
-async function loadCurriculum() {
-    try {
-        const response = await fetch('lessons/l1.json');
-        if (!response.ok) throw new Error("Failed to load level data.");
-        quests = await response.json();
-        loadQuest(0);
-    } catch (err) {
-        console.error(err);
-        document.getElementById("quest-heading").innerText = "Error loading level";
     }
-}
 
-        let currentQuestIndex = 0;
-        let pyodideReady = false;
-        let pyodide;
-        let currentXP = 0;
+    // Global state variables
+    let quests = [];
+    let currentQuestIndex = 0;
+    let pyodideReady = false;
+    let pyodide;
+    let currentXP = 0;
 
-        function renderSidebar() {
-            const tree = document.getElementById("sidebar-tree");
-            if (!tree) return;
-            tree.innerHTML = '<h3>Neural Skill Tree</h3>';
-            
-            quests.forEach((q, idx) => {
-                let statusClass = "";
-                let statusText = "[LOCKED]";
-                if (idx < currentQuestIndex) {
-                    statusClass = "completed";
-                    statusText = "[DONE] ✔";
-                } else if (idx === currentQuestIndex) {
-                    statusClass = "active";
-                    statusText = `[ACTIVE] +${q.xp}XP`;
-                }
-                tree.innerHTML += `
-                    <div class="quest-node ${statusClass}" onclick="switchQuest(${idx})">
-                        <div class="quest-title">${q.title}</div>
-                        <div class="quest-status">${statusText}</div>
-                    </div>
-                `;
-            });
-        }
-
-        function loadQuest(index) {
-            if (index >= quests.length) return;
-            currentQuestIndex = index;
-            const q = quests[index];
-            document.getElementById("quest-heading").innerText = `Quest ${q.id}: ${q.title.split('. ')[1]}`;
-            document.getElementById("quest-lesson").innerHTML = q.lesson;
-            document.getElementById("quest-desc").innerHTML = q.desc;
-            document.getElementById("code-input").value = q.starterCode;
-            document.getElementById("ai-hint-box").innerText = "";
-            renderSidebar();
-        }
-
-        function switchQuest(index) {
-            if (index <= currentQuestIndex) loadQuest(index);
-        }
-
-        // Initialize UI immediately on DOM Content Loaded
-        document.addEventListener("DOMContentLoaded", () => {
+    // Dynamically fetch Level 1 JSON curriculum
+    async function loadCurriculum() {
+        try {
+            // Using './lessons/l1.json' ensures it looks inside the correct relative subfolder on GitHub Pages
+            const response = await fetch('./lessons/l1.json');
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            quests = await response.json();
             loadQuest(0);
-            initPyodide();
+        } catch (err) {
+            console.error("Fetch failed:", err);
+            document.getElementById("quest-heading").innerText = "LOAD ERROR";
+            document.getElementById("quest-lesson").innerHTML = "Could not load <code>lessons/l1.json</code>. Check your file path or GitHub folder structure.";
+        }
+    }
+
+    function renderSidebar() {
+        const tree = document.getElementById("sidebar-tree");
+        if (!tree) return;
+        tree.innerHTML = '<h3>Neural Skill Tree</h3>';
+        
+        quests.forEach((q, idx) => {
+            let statusClass = "";
+            let statusText = "[LOCKED]";
+            if (idx < currentQuestIndex) {
+                statusClass = "completed";
+                statusText = "[DONE] ✔";
+            } else if (idx === currentQuestIndex) {
+                statusClass = "active";
+                statusText = `[ACTIVE] +${q.xp}XP`;
+            }
+            tree.innerHTML += `
+                <div class="quest-node ${statusClass}" onclick="switchQuest(${idx})">
+                    <div class="quest-title">${q.title}</div>
+                    <div class="quest-status">${statusText}</div>
+                </div>
+            `;
         });
+    }
 
-        async function initPyodide() {
-            const out = document.getElementById("output");
-            try {
-                pyodide = await loadPyodide();
-                pyodideReady = true;
-                out.innerText = "System online. Ready for code execution.";
-            } catch (err) {
-                out.innerText = "ERROR loading Python: " + err;
-            }
+    function loadQuest(index) {
+        if (index >= quests.length) return;
+        currentQuestIndex = index;
+        const q = quests[index];
+        document.getElementById("quest-heading").innerText = `Quest ${q.id}: ${q.title.split('. ')[1]}`;
+        document.getElementById("quest-lesson").innerHTML = q.lesson;
+        document.getElementById("quest-desc").innerHTML = q.desc;
+        document.getElementById("code-input").value = q.starterCode;
+        document.getElementById("ai-hint-box").innerText = "";
+        renderSidebar();
+    }
+
+    function switchQuest(index) {
+        if (index <= currentQuestIndex) loadQuest(index);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        loadCurriculum();
+        initPyodide();
+    });
+
+    async function initPyodide() {
+        const out = document.getElementById("output");
+        try {
+            pyodide = await loadPyodide();
+            pyodideReady = true;
+            out.innerText = "System online. Ready for code execution.";
+        } catch (err) {
+            out.innerText = "ERROR loading Python: " + err;
         }
+    }
 
-        async function runPythonCode() {
-            if (!pyodideReady) {
-                alert("Python runtime still booting up, hold on a second...");
-                return;
-            }
-            playSound('run');
-            const code = document.getElementById("code-input").value;
-            const outputPre = document.getElementById("output");
-            outputPre.innerText = "Executing...";
+    async function runPythonCode() {
+        if (!pyodideReady) {
+            alert("Python runtime still booting up, hold on a second...");
+            return;
+        }
+        playSound('run');
+        const code = document.getElementById("code-input").value;
+        const outputPre = document.getElementById("output");
+        outputPre.innerText = "Executing...";
 
-            try {
-                pyodide.runPython(`import sys, io\nsys.stdout = io.StringIO()`);
-                pyodide.runPython(code);
-                let stdout = pyodide.runPython("sys.stdout.getvalue()");
-                outputPre.innerText = stdout;
+        try {
+            pyodide.runPython(`import sys, io\nsys.stdout = io.StringIO()`);
+            pyodide.runPython(code);
+            let stdout = pyodide.runPython("sys.stdout.getvalue()");
+            outputPre.innerText = stdout;
 
-                let targetOutput = quests[currentQuestIndex].expected.trim();
-                if (stdout.trim() === targetOutput) {
-                    playSound('success');
-                    const earnedXP = quests[currentQuestIndex].xp;
-                    outputPre.innerText += `\n\n[✔] PASSED: +${earnedXP} XP`;
-                    currentXP += earnedXP;
-                    document.getElementById("xp-display").innerText = currentXP;
-                    currentQuestIndex++;
-                    renderSidebar();
-                    if (currentQuestIndex < quests.length) {
-                        setTimeout(() => loadQuest(currentQuestIndex), 1500);
-                    } else {
-                        outputPre.innerText += "\n\n🎉 ALL PROTOCOLS COMPLETED.";
-                    }
+            let targetOutput = quests[currentQuestIndex].expected.trim();
+            if (stdout.trim() === targetOutput) {
+                playSound('success');
+                const earnedXP = quests[currentQuestIndex].xp;
+                outputPre.innerText += `\n\n[✔] PASSED: +${earnedXP} XP`;
+                currentXP += earnedXP;
+                document.getElementById("xp-display").innerText = currentXP;
+                currentQuestIndex++;
+                renderSidebar();
+                if (currentQuestIndex < quests.length) {
+                    setTimeout(() => loadQuest(currentQuestIndex), 1500);
                 } else {
-                    outputPre.innerText += `\n\n[✖] FAILED. Expected:\n${targetOutput}`;
+                    outputPre.innerText += "\n\n🎉 LEVEL 1 COMPLETED.";
                 }
-            } catch (err) {
-                outputPre.innerText = "ERROR:\n" + err;
+            } else {
+                outputPre.innerText += `\n\n[✖] FAILED. Expected:\n${targetOutput}`;
             }
+        } catch (err) {
+            outputPre.innerText = "ERROR:\n" + err;
         }
+    }
 
-        function requestAiHint() {
-            playSound('run');
-            const hints = [
-                "Hint: Use print(\"ACCESS_GRANTED\")",
-                "Hint: agent = \"Ghost_Runner\" then print(agent)",
-                "Hint: for i in range(1, 4): print(i)"
-            ];
-            document.getElementById("ai-hint-box").innerText = hints[currentQuestIndex];
-        }
+    function requestAiHint() {
+        playSound('run');
+        const hints = [
+            "Hint: Use print(\"Hello, World!\")",
+            "Hint: Place each print statement on its own line.",
+            "Hint: Remember that # starts a comment line.",
+            "Hint: Make sure your quotation marks are closed properly.",
+            "Hint: Pass math operators straight into print without quotes."
+        ];
+        document.getElementById("ai-hint-box").innerText = hints[currentQuestIndex] || "Review the lesson briefing closely.";
+    }
     </script>
 </body>
 </html>
