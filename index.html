@@ -171,7 +171,7 @@
             font-size: 0.9rem;
             line-height: 1.6;
             color: var(--text-main);
-            margin-bottom: 1.5krem;
+            margin-bottom: 1.5rem;
         }
 
         #quest-desc {
@@ -355,17 +355,110 @@
         let pyodide;
         let currentXP = 0;
 
-        // Dynamically fetch Level 1 JSON curriculum using repository subfolder routing
+        // Dynamically fetch Level 1 JSON curriculum with an embedded fallback safety net
         async function loadCurriculum() {
             try {
-                const response = await fetch('/nexus-code/lessons/l1.json');
+                const basePath = window.location.pathname.includes('/nexus-code/') ? '/nexus-code/lessons/l1.json' : './lessons/l1.json';
+                const response = await fetch(basePath);
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 quests = await response.json();
                 loadQuest(0);
             } catch (err) {
-                console.error("Fetch failed:", err);
-                document.getElementById("quest-heading").innerText = "LOAD ERROR";
-                document.getElementById("quest-lesson").innerHTML = "Could not fetch <code>lessons/l1.json</code>. Check path.";
+                console.warn("Fetch failed, using embedded fallback data:", err);
+                // Safety Fallback: Loads lessons locally if GitHub Pages blocks fetch
+                quests = [
+                    {
+                        id: 1,
+                        title: "01. Hello Python",
+                        lesson: "In Python, the <code>print()</code> function is used to display text on the screen. Anything inside the quotation marks inside the parentheses is what gets printed.",
+                        desc: "Write a <code>print()</code> command that outputs the exact text: <code>Hello, World!</code>",
+                        starterCode: "# Type your print statement below\n",
+                        expected: "Hello, World!",
+                        xp: 50
+                    },
+                    {
+                        id: 2,
+                        title: "02. Multiple Lines",
+                        lesson: "You can place multiple <code>print()</code> statements one after another. Each statement will automatically output its result on a new line.",
+                        desc: "Print <code>Python</code> on the first line, and <code>is awesome</code> on the second line using two separate print statements.",
+                        starterCode: "# Write your print statements below\n",
+                        expected: "Python\nis awesome",
+                        xp: 50
+                    },
+                    {
+                        id: 3,
+                        title: "03. Code Comments",
+                        lesson: "Lines in your code that start with the <code>#</code> symbol are comments. Python completely ignores them when running the code. They are used to leave notes for humans.",
+                        desc: "Add a comment that says <code># Learning Python</code>, then print <code>Ready</code> on the next line.",
+                        starterCode: "# Add your comment and print statement below\n",
+                        expected: "Ready",
+                        xp: 50
+                    },
+                    {
+                        id: 4,
+                        title: "04. Syntax Errors",
+                        lesson: "Python is strict about grammar—this is called syntax. If you forget a closing quotation mark or parenthesis, Python will throw a <code>SyntaxError</code>.",
+                        desc: "Fix the broken code in the editor so it successfully prints <code>Hello Again</code>.",
+                        starterCode: "print(\"Hello Again\n",
+                        expected: "Hello Again",
+                        xp: 50
+                    },
+                    {
+                        id: 5,
+                        title: "05. Math Inside Print",
+                        lesson: "You don't always need quotes. If you pass numbers into <code>print()</code> with math operators (like <code>+</code> or <code>*</code>), Python calculates the answer before printing it.",
+                        desc: "Print the result of <code>10 + 15</code> without using quotation marks.",
+                        starterCode: "# Print the sum of 10 and 15\n",
+                        expected: "25",
+                        xp: 60
+                    },
+                    {
+                        id: 6,
+                        title: "06. Multi-line Strings",
+                        lesson: "If you want a single string to span across multiple lines naturally without writing multiple print statements, you can use triple quotes: <code>\"\"\"</code>.",
+                        desc: "Use triple quotes inside a <code>print()</code> statement to output:\nLine One\nLine Two",
+                        starterCode: "# Print multi-line string using triple quotes\n",
+                        expected: "Line One\nLine Two",
+                        xp: 60
+                    },
+                    {
+                        id: 7,
+                        title: "07. Escape Characters",
+                        lesson: "You can insert a newline directly inside a single-string print statement by using the escape character <code>\\n</code>.",
+                        desc: "Print <code>Alpha</code> and <code>Beta</code> on separate lines using a single <code>print()</code> statement and <code>\\n</code>.",
+                        starterCode: "# Use \\n inside your print statement\n",
+                        expected: "Alpha\nBeta",
+                        xp: 60
+                    },
+                    {
+                        id: 8,
+                        title: "08. Tab Spacing",
+                        lesson: "Another useful escape character is <code>\\t</code>, which inserts a horizontal tab (indentation) into your printed text.",
+                        desc: "Print the word <code>Indent:</code> followed by a tab character <code>\\t</code> and the word <code>Accepted</code>.",
+                        starterCode: "# Print with tab spacing\n",
+                        expected: "Indent:\tAccepted",
+                        xp: 60
+                    },
+                    {
+                        id: 9,
+                        title: "09. Printing Multiple Arguments",
+                        lesson: "You can print multiple items in a single print statement by separating them with commas. Python automatically adds a space between them.",
+                        desc: "Print the words <code>Code</code> and <code>Level</code> and <code>1</code> separated by commas.",
+                        starterCode: "# Separate items with commas\n",
+                        expected: "Code Level 1",
+                        xp: 75
+                    },
+                    {
+                        id: 10,
+                        title: "10. Level 1 Checkpoint",
+                        lesson: "Time to test everything you've learned in Level 1 into a final standalone script.",
+                        desc: "Write a script with a comment <code># Complete</code> and a print statement that outputs <code>LEVEL_ONE_COMPLETE</code>.",
+                        starterCode: "# Add comment and print statement\n",
+                        expected: "LEVEL_ONE_COMPLETE",
+                        xp: 100
+                    }
+                ];
+                loadQuest(0);
             }
         }
 
