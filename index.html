@@ -2,28 +2,31 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>HEXCODE // Cybernetic Python Training</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HEXCODE // Cybernetic Python</title>
     <!-- Pyodide for Browser Python Execution -->
-    <script src="https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js"></script>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
     <style>
         :root {
-            --bg-deep: #030712;
+            --bg-main: #030712;
             --bg-card: #0b0f19;
-            --border-neon: #1e293b;
+            --border-neon: #1e3a8a;
             --cyan: #06b6d4;
             --magenta: #ec4899;
             --emerald: #10b981;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Courier New', Courier, monospace; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Courier New', Courier, monospace;
+        }
 
-        html, body {
-            width: 100%;
-            max-width: 100vw;
-            background-color: var(--bg-deep);
+        body {
+            background-color: var(--bg-main);
             color: var(--text-main);
             min-height: 100vh;
             display: flex;
@@ -31,7 +34,7 @@
             overflow-x: hidden;
         }
 
-        /* Scanline Overlay */
+        /* Scanline Overlay Effect */
         body::after {
             content: " ";
             display: block;
@@ -47,31 +50,25 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 1rem;
+            padding: 1rem 2rem;
             border-bottom: 1px solid var(--border-neon);
-            background: rgba(3, 7, 18, 0.9);
-            backdrop-filter: blur(10px);
-            width: 100%;
+            background: rgba(3, 7, 18, 0.95);
         }
 
         .logo {
-            font-size: 1rem;
+            font-size: 1.25rem;
             font-weight: bold;
             color: var(--cyan);
             text-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
-            letter-spacing: 1px;
         }
 
         .stats-bar {
             display: flex;
-            gap: 1rem;
-            font-size: 0.8rem;
+            gap: 1.5rem;
+            font-size: 0.85rem;
         }
 
         .stat-item {
-            display: flex;
-            align-items: center;
-            gap: 0.3rem;
             color: var(--text-muted);
         }
 
@@ -81,223 +78,201 @@
         }
 
         .main-container {
-            display: grid;
-            grid-template-columns: 280px 1fr;
+            display: flex;
             flex: 1;
-            width: 100%;
+            height: calc(100vh - 65px);
         }
 
-        /* Quest Tree Sidebar */
-        aside {
-            border-right: 1px solid var(--border-neon);
+        /* Sidebar Tree */
+        sidebar {
+            width: 300px;
             background: var(--bg-card);
-            padding: 1.2rem;
+            border-right: 1px solid var(--border-neon);
+            padding: 1.5rem;
             overflow-y: auto;
         }
 
-        aside h3 {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 1px;
+        sidebar h3 {
+            font-size: 0.9rem;
+            color: var(--magenta);
             margin-bottom: 1rem;
+            letter-spacing: 1px;
         }
 
         .quest-node {
-            background: rgba(30, 41, 59, 0.5);
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
             border: 1px solid var(--border-neon);
-            padding: 0.8rem;
-            border-radius: 6px;
-            margin-bottom: 0.75rem;
+            background: rgba(11, 15, 25, 0.5);
+            border-radius: 4px;
             cursor: pointer;
             transition: all 0.2s ease;
         }
 
+        .quest-node:hover {
+            border-color: var(--cyan);
+        }
+
         .quest-node.active {
             border-color: var(--cyan);
-            background: rgba(6, 182, 212, 0.05);
+            background: rgba(6, 182, 212, 0.1);
         }
 
         .quest-node.completed {
             border-color: var(--emerald);
-            background: rgba(16, 185, 129, 0.05);
         }
 
         .quest-title {
-            font-size: 0.9rem;
-            font-weight: bold;
-            margin-bottom: 0.2rem;
+            font-size: 0.85rem;
+            color: var(--text-main);
         }
 
         .quest-status {
             font-size: 0.7rem;
             color: var(--text-muted);
+            margin-top: 0.25rem;
         }
 
         /* Workspace Grid */
         .workspace {
-            display: grid;
-            grid-template-rows: 1fr auto;
-            background: var(--bg-deep);
-            width: 100%;
-            overflow: hidden;
-        }
-
-        .editor-area {
+            flex: 1;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            border-bottom: 1px solid var(--border-neon);
-            width: 100%;
-        }
-
-        .mission-panel {
+            gap: 1rem;
             padding: 1.5rem;
-            border-right: 1px solid var(--border-neon);
+            background: var(--bg-main);
             overflow-y: auto;
         }
 
-        .mission-panel h2 {
-            color: var(--cyan);
-            margin-bottom: 0.75rem;
-            font-size: 1.2rem;
-        }
-
-        .section-label {
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--magenta);
-            margin-top: 1rem;
-            margin-bottom: 0.3rem;
-            display: block;
-        }
-
-        .mission-panel p {
-            color: var(--text-muted);
-            line-height: 1.5;
-            font-size: 0.85rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .mission-panel code {
-            background: rgba(30, 41, 59, 0.7);
-            color: var(--cyan);
-            padding: 0.15rem 0.3rem;
-            border-radius: 4px;
-            font-size: 0.8rem;
-        }
-
-        .code-container {
+        .panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border-neon);
+            border-radius: 6px;
+            padding: 1.5rem;
             display: flex;
             flex-direction: column;
-            background: #05070d;
-            width: 100%;
         }
 
-        .code-header {
-            padding: 0.5rem 1rem;
-            background: rgba(30, 41, 59, 0.3);
-            border-bottom: 1px solid var(--border-neon);
-            font-size: 0.75rem;
+        .panel-title {
+            font-size: 0.8rem;
+            color: var(--magenta);
+            letter-spacing: 1px;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+        }
+
+        #quest-heading {
+            font-size: 1.2rem;
+            color: var(--cyan);
+            margin-bottom: 1rem;
+        }
+
+        #quest-lesson {
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: var(--text-main);
+            margin-bottom: 1.5krem;
+        }
+
+        #quest-desc {
+            font-size: 0.85rem;
+            background: rgba(0,0,0,0.3);
+            padding: 1rem;
+            border-left: 3px solid var(--cyan);
+            margin-bottom: 1.5rem;
             color: var(--text-muted);
+        }
+
+        code {
+            background: rgba(255,255,255,0.08);
+            padding: 0.1rem 0.3rem;
+            border-radius: 3px;
+            color: var(--cyan);
+        }
+
+        /* Editor & Output Layout */
+        .editor-container {
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
+            flex: 1;
+            gap: 1rem;
         }
 
         textarea {
             width: 100%;
-            flex: 1;
-            background: transparent;
-            color: var(--cyan);
-            border: none;
+            height: 150px;
+            background: #030712;
+            color: var(--emerald);
+            border: 1px solid var(--border-neon);
             padding: 1rem;
-            font-size: 0.9rem;
+            border-radius: 4px;
             resize: none;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        textarea:focus {
             outline: none;
-            line-height: 1.5;
-            min-height: 180px;
+            border-color: var(--cyan);
         }
 
-        /* Terminal Console */
-        .terminal {
-            background: #020408;
-            padding: 1rem;
+        .action-bar {
             display: flex;
-            flex-direction: column;
-            width: 100%;
-        }
-
-        .terminal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.5rem;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-
-        .action-btns {
-            display: flex;
-            gap: 0.5rem;
+            gap: 1rem;
         }
 
         button {
             background: var(--cyan);
-            color: var(--bg-deep);
+            color: var(--bg-main);
             border: none;
-            padding: 0.4rem 1rem;
+            padding: 0.6rem 1.2rem;
             font-weight: bold;
             border-radius: 4px;
             cursor: pointer;
-            transition: all 0.2s;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.75rem;
+            transition: opacity 0.2s;
         }
 
         button:hover {
-            box-shadow: 0 0 10px var(--cyan);
-            background: #22d3ee;
+            opacity: 0.85;
         }
 
-        .btn-hint {
+        .btn-secondary {
             background: transparent;
-            color: var(--magenta);
-            border: 1px solid var(--magenta);
+            color: var(--cyan);
+            border: 1px solid var(--cyan);
         }
 
-        pre#output {
-            background: rgba(0, 0, 0, 0.5);
+        #output {
+            background: #030712;
             border: 1px solid var(--border-neon);
-            padding: 0.75rem;
+            padding: 1rem;
             border-radius: 4px;
-            color: var(--emerald);
-            font-size: 0.8rem;
-            height: 120px;
-            overflow-y: auto;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            flex: 1;
+            min-height: 100px;
             white-space: pre-wrap;
-            word-break: break-all;
+            overflow-y: auto;
         }
 
-        /* ==========================================
-           MOBILE RESPONSIVENESS (< 900px screens)
-           ========================================== */
+        #ai-hint-box {
+            margin-top: 1rem;
+            font-size: 0.8rem;
+            color: var(--magenta);
+        }
+
+        /* Mobile Responsiveness */
         @media (max-width: 900px) {
             .main-container {
+                flex-direction: column;
+                height: auto;
+            }
+            sidebar {
+                width: 100%;
+                max-height: 200px;
+            }
+            .workspace {
                 grid-template-columns: 1fr;
-            }
-            aside {
-                display: none;
-            }
-            .editor-area {
-                grid-template-columns: 1fr;
-            }
-            .mission-panel {
-                max-height: 220px;
-                border-right: none;
-                border-bottom: 1px solid var(--border-neon);
             }
         }
     </style>
@@ -308,204 +283,197 @@
         <div class="logo">⚡ HEXCODE v1.2</div>
         <div class="stats-bar">
             <div class="stat-item">LVL: <span class="stat-val" id="level-display">01</span></div>
-            <div class="stat-item">XP: <span class="stat-val" id="xp-display">0</span>/225</div>
-            <div class="stat-item">STR: <span class="stat-val" id="streak-display">🔥1</span></div>
+            <div class="stat-item">XP: <span class="stat-val" id="xp-display">0</span></div>
         </div>
     </header>
 
     <div class="main-container">
-        <aside id="sidebar-tree">
+        <!-- Sidebar Navigation Tree -->
+        <sidebar id="sidebar-tree">
             <h3>Neural Skill Tree</h3>
-        </aside>
+            <div class="quest-node">Loading modules...</div>
+        </sidebar>
 
+        <!-- Main Workspace -->
         <div class="workspace">
-            <div class="editor-area">
-                <div class="mission-panel">
-                    <h2 id="quest-heading">Loading...</h2>
-                    
-                    <span class="section-label">📖 Lesson Briefing</span>
-                    <p id="quest-lesson">Loading briefing...</p>
-
-                    <span class="section-label">🎯 Mission Objective</span>
-                    <p id="quest-desc">Loading objective...</p>
-
-                    <div id="ai-hint-box" style="margin-top: 0.5rem; color: var(--magenta); font-size: 0.8rem;"></div>
-                </div>
-                <div class="code-container">
-                    <div class="code-header">
-                        <span id="file-name">terminal_main.py</span>
-                        <span>PYTHON 3.11</span>
-                    </div>
-                    <textarea id="code-input" placeholder="# Write your solution here..."></textarea>
-                </div>
+            <!-- Left Panel: Lesson Briefing -->
+            <div class="panel">
+                <div class="panel-title">📁 Lesson Briefing</div>
+                <h2 id="quest-heading">Loading...</h2>
+                <div id="quest-lesson">Loading briefing...</div>
+                <div class="panel-title" style="margin-top: 1rem;">🎯 Mission Objective</div>
+                <div id="quest-desc">Loading objective...</div>
+                <button class="btn-secondary" onclick="requestAiHint()" style="margin-top: auto; align-self: flex-start;">Request Terminal Hint</button>
+                <div id="ai-hint-box"></div>
             </div>
 
-            <div class="terminal">
-                <div class="terminal-header">
-                    <span>BUFFER // OUTPUT</span>
-                    <div class="action-btns">
-                        <button class="btn-hint" onclick="requestAiHint()">Hint</button>
-                        <button onclick="runPythonCode()">Execute ❯</button>
+            <!-- Right Panel: Code Editor & Execution Output -->
+            <div class="panel">
+                <div class="panel-title">💻 Terminal Editor</div>
+                <div class="editor-container">
+                    <textarea id="code-input" spellcheck="false"></textarea>
+                    <div class="action-bar">
+                        <button onclick="runPythonCode()">► Execute Code</button>
                     </div>
                 </div>
-                <pre id="output">System initializing...</pre>
+                <div class="panel-title" style="margin-top: 1.5rem;">Buffer // Output</div>
+                <pre id="output">System initializing Pyodide runtime...</pre>
             </div>
         </div>
     </div>
 
     <script>
-    // Audio Context Setup for SFX
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    function playSound(type) {
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
+        // Audio Context Setup for SFX
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
 
-        if (type === 'run') {
-            osc.frequency.setValueAtTime(440, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.1);
-            gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.1);
-            osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-        } else if (type === 'success') {
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
-            osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.08);
-            osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.16);
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
-            osc.start(); osc.stop(audioCtx.currentTime + 0.3);
-        }
-    }
-
-    // Global state variables
-    let quests = [];
-    let currentQuestIndex = 0;
-    let pyodideReady = false;
-    let pyodide;
-    let currentXP = 0;
-
-    // Dynamically fetch Level 1 JSON curriculum
-   async function loadCurriculum() {
-    try {
-        // Explicitly include your repository name for GitHub Pages routing
-        const response = await fetch('/nexus-code/lessons/l1.json');
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        quests = await response.json();
-        loadQuest(0);
-    } catch (err) {
-        console.error("Fetch failed:", err);
-        document.getElementById("quest-heading").innerText = "LOAD ERROR";
-        document.getElementById("quest-lesson").innerHTML = "Could not load <code>lessons/l1.json</code>. Check your file path or GitHub folder structure.";
-    }
-}
-    function renderSidebar() {
-        const tree = document.getElementById("sidebar-tree");
-        if (!tree) return;
-        tree.innerHTML = '<h3>Neural Skill Tree</h3>';
-        
-        quests.forEach((q, idx) => {
-            let statusClass = "";
-            let statusText = "[LOCKED]";
-            if (idx < currentQuestIndex) {
-                statusClass = "completed";
-                statusText = "[DONE] ✔";
-            } else if (idx === currentQuestIndex) {
-                statusClass = "active";
-                statusText = `[ACTIVE] +${q.xp}XP`;
+            if (type === 'run') {
+                osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.1);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+            } else if (type === 'success') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.08);
+                osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.16);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.3);
             }
-            tree.innerHTML += `
-                <div class="quest-node ${statusClass}" onclick="switchQuest(${idx})">
-                    <div class="quest-title">${q.title}</div>
-                    <div class="quest-status">${statusText}</div>
-                </div>
-            `;
-        });
-    }
-
-    function loadQuest(index) {
-        if (index >= quests.length) return;
-        currentQuestIndex = index;
-        const q = quests[index];
-        document.getElementById("quest-heading").innerText = `Quest ${q.id}: ${q.title.split('. ')[1]}`;
-        document.getElementById("quest-lesson").innerHTML = q.lesson;
-        document.getElementById("quest-desc").innerHTML = q.desc;
-        document.getElementById("code-input").value = q.starterCode;
-        document.getElementById("ai-hint-box").innerText = "";
-        renderSidebar();
-    }
-
-    function switchQuest(index) {
-        if (index <= currentQuestIndex) loadQuest(index);
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-        loadCurriculum();
-        initPyodide();
-    });
-
-    async function initPyodide() {
-        const out = document.getElementById("output");
-        try {
-            pyodide = await loadPyodide();
-            pyodideReady = true;
-            out.innerText = "System online. Ready for code execution.";
-        } catch (err) {
-            out.innerText = "ERROR loading Python: " + err;
         }
-    }
 
-    async function runPythonCode() {
-        if (!pyodideReady) {
-            alert("Python runtime still booting up, hold on a second...");
-            return;
+        let quests = [];
+        let currentQuestIndex = 0;
+        let pyodideReady = false;
+        let pyodide;
+        let currentXP = 0;
+
+        // Dynamically fetch Level 1 JSON curriculum using repository subfolder routing
+        async function loadCurriculum() {
+            try {
+                const response = await fetch('/nexus-code/lessons/l1.json');
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                quests = await response.json();
+                loadQuest(0);
+            } catch (err) {
+                console.error("Fetch failed:", err);
+                document.getElementById("quest-heading").innerText = "LOAD ERROR";
+                document.getElementById("quest-lesson").innerHTML = "Could not fetch <code>lessons/l1.json</code>. Check path.";
+            }
         }
-        playSound('run');
-        const code = document.getElementById("code-input").value;
-        const outputPre = document.getElementById("output");
-        outputPre.innerText = "Executing...";
 
-        try {
-            pyodide.runPython(`import sys, io\nsys.stdout = io.StringIO()`);
-            pyodide.runPython(code);
-            let stdout = pyodide.runPython("sys.stdout.getvalue()");
-            outputPre.innerText = stdout;
-
-            let targetOutput = quests[currentQuestIndex].expected.trim();
-            if (stdout.trim() === targetOutput) {
-                playSound('success');
-                const earnedXP = quests[currentQuestIndex].xp;
-                outputPre.innerText += `\n\n[✔] PASSED: +${earnedXP} XP`;
-                currentXP += earnedXP;
-                document.getElementById("xp-display").innerText = currentXP;
-                currentQuestIndex++;
-                renderSidebar();
-                if (currentQuestIndex < quests.length) {
-                    setTimeout(() => loadQuest(currentQuestIndex), 1500);
-                } else {
-                    outputPre.innerText += "\n\n🎉 LEVEL 1 COMPLETED.";
+        function renderSidebar() {
+            const tree = document.getElementById("sidebar-tree");
+            if (!tree) return;
+            tree.innerHTML = '<h3>Neural Skill Tree</h3>';
+            
+            quests.forEach((q, idx) => {
+                let statusClass = "";
+                let statusText = "[LOCKED]";
+                if (idx < currentQuestIndex) {
+                    statusClass = "completed";
+                    statusText = "[DONE] ✔";
+                } else if (idx === currentQuestIndex) {
+                    statusClass = "active";
+                    statusText = `[ACTIVE] +${q.xp}XP`;
                 }
-            } else {
-                outputPre.innerText += `\n\n[✖] FAILED. Expected:\n${targetOutput}`;
-            }
-        } catch (err) {
-            outputPre.innerText = "ERROR:\n" + err;
+                tree.innerHTML += `
+                    <div class="quest-node ${statusClass}" onclick="switchQuest(${idx})">
+                        <div class="quest-title">${q.title}</div>
+                        <div class="quest-status">${statusText}</div>
+                    </div>
+                `;
+            });
         }
-    }
 
-    function requestAiHint() {
-        playSound('run');
-        const hints = [
-            "Hint: Use print(\"Hello, World!\")",
-            "Hint: Place each print statement on its own line.",
-            "Hint: Remember that # starts a comment line.",
-            "Hint: Make sure your quotation marks are closed properly.",
-            "Hint: Pass math operators straight into print without quotes."
-        ];
-        document.getElementById("ai-hint-box").innerText = hints[currentQuestIndex] || "Review the lesson briefing closely.";
-    }
+        function loadQuest(index) {
+            if (index >= quests.length) return;
+            currentQuestIndex = index;
+            const q = quests[index];
+            document.getElementById("quest-heading").innerText = `Quest ${q.id}: ${q.title.split('. ')[1]}`;
+            document.getElementById("quest-lesson").innerHTML = q.lesson;
+            document.getElementById("quest-desc").innerHTML = q.desc;
+            document.getElementById("code-input").value = q.starterCode;
+            document.getElementById("ai-hint-box").innerText = "";
+            renderSidebar();
+        }
+
+        function switchQuest(index) {
+            if (index <= currentQuestIndex) loadQuest(index);
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            loadCurriculum();
+            initPyodide();
+        });
+
+        async function initPyodide() {
+            const out = document.getElementById("output");
+            try {
+                pyodide = await loadPyodide();
+                pyodideReady = true;
+                out.innerText = "System online. Ready for code execution.";
+            } catch (err) {
+                out.innerText = "ERROR loading Python: " + err;
+            }
+        }
+
+        async function runPythonCode() {
+            if (!pyodideReady) {
+                alert("Python runtime still booting up, hold on a second...");
+                return;
+            }
+            playSound('run');
+            const code = document.getElementById("code-input").value;
+            const outputPre = document.getElementById("output");
+            outputPre.innerText = "Executing...";
+
+            try {
+                pyodide.runPython(`import sys, io\nsys.stdout = io.StringIO()`);
+                pyodide.runPython(code);
+                let stdout = pyodide.runPython("sys.stdout.getvalue()");
+                outputPre.innerText = stdout;
+
+                let targetOutput = quests[currentQuestIndex].expected.trim();
+                if (stdout.trim() === targetOutput) {
+                    playSound('success');
+                    const earnedXP = quests[currentQuestIndex].xp;
+                    outputPre.innerText += `\n\n[✔] PASSED: +${earnedXP} XP`;
+                    currentXP += earnedXP;
+                    document.getElementById("xp-display").innerText = currentXP;
+                    currentQuestIndex++;
+                    renderSidebar();
+                    if (currentQuestIndex < quests.length) {
+                        setTimeout(() => loadQuest(currentQuestIndex), 1500);
+                    } else {
+                        outputPre.innerText += "\n\n🎉 LEVEL 1 COMPLETED.";
+                    }
+                } else {
+                    outputPre.innerText += `\n\n[✖] FAILED. Expected:\n${targetOutput}`;
+                }
+            } catch (err) {
+                outputPre.innerText = "ERROR:\n" + err;
+            }
+        }
+
+        function requestAiHint() {
+            playSound('run');
+            const hints = [
+                "Hint: Use print(\"Hello, World!\")",
+                "Hint: Place each print statement on its own line.",
+                "Hint: Remember that # starts a comment line.",
+                "Hint: Make sure your quotation marks are closed properly.",
+                "Hint: Pass math operators straight into print without quotes."
+            ];
+            document.getElementById("ai-hint-box").innerText = hints[currentQuestIndex] || "Review the lesson briefing closely.";
+        }
     </script>
 </body>
 </html>
